@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hilton Restaurant Training</title>
+    <title>Hilton Restaurant Training Portal</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-react/0.263.1/umd/lucide-react.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-                sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
     </style>
 </head>
@@ -24,21 +19,11 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        // Extract Lucide icons for use in the app
         const { 
-            ChevronRight, 
-            CheckCircle, 
-            User, 
-            Settings, 
-            BookOpen, 
-            Award, 
-            Home, 
-            Plus, 
-            Edit, 
-            Trash2, 
-            Eye, 
-            EyeOff 
-        } = lucide_react;
+            ChevronRight, CheckCircle, User, Settings, BookOpen, Award, Home, Plus, 
+            Edit, Trash2, Eye, EyeOff 
+        } = lucide;
 
         // LESSON DATA MODULE - Sample data structure
         const SAMPLE_LESSONS = [
@@ -85,10 +70,10 @@
 
         // AUTH MODULE - Simple authentication
         const AuthModule = ({ onLogin }) => {
-            const [loginType, setLoginType] = useState('staff');
-            const [name, setName] = useState('');
-            const [role, setRole] = useState('Server');
-            const [adminCode, setAdminCode] = useState('');
+            const [loginType, setLoginType] = React.useState('staff');
+            const [name, setName] = React.useState('');
+            const [role, setRole] = React.useState('Server');
+            const [adminCode, setAdminCode] = React.useState('');
 
             const handleLogin = () => {
                 if (loginType === 'staff' && name.trim()) {
@@ -105,7 +90,6 @@
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">Hilton Restaurant</h1>
                             <h2 className="text-xl text-gray-600">Training Portal</h2>
                         </div>
-
                         <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
                             <button
                                 onClick={() => setLoginType('staff')}
@@ -128,7 +112,6 @@
                                 Admin Login
                             </button>
                         </div>
-
                         {loginType === 'staff' ? (
                             <div className="space-y-4">
                                 <input
@@ -158,7 +141,6 @@
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         )}
-
                         <button
                             onClick={handleLogin}
                             className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
@@ -172,11 +154,11 @@
 
         // STAFF TRAINING MODULE
         const StaffTrainingModule = ({ lessons, user, onCompleteLesson, completedLessons }) => {
-            const [currentLesson, setCurrentLesson] = useState(null);
-            const [showAnswer, setShowAnswer] = useState(false);
-            const [userAnswer, setUserAnswer] = useState('');
-            const [showFeedback, setShowFeedback] = useState(false);
-            const [currentStep, setCurrentStep] = useState('concept');
+            const [currentLesson, setCurrentLesson] = React.useState(null);
+            const [showAnswer, setShowAnswer] = React.useState(false);
+            const [userAnswer, setUserAnswer] = React.useState('');
+            const [showFeedback, setShowFeedback] = React.useState(false);
+            const [currentStep, setCurrentStep] = React.useState('concept'); // concept, scenario, check, quiz, complete
 
             const groupedLessons = lessons.reduce((acc, lesson) => {
                 if (!acc[lesson.module]) {
@@ -204,6 +186,7 @@
 
             const submitAnswer = () => {
                 setShowFeedback(true);
+                // Simple feedback logic - in real app, this would be more sophisticated
                 setTimeout(() => {
                     nextStep();
                 }, 2000);
@@ -229,7 +212,6 @@
                                         ← Back to Modules
                                     </button>
                                 </div>
-
                                 {currentStep === 'concept' && (
                                     <div className="space-y-6">
                                         <div className="bg-blue-50 p-6 rounded-lg">
@@ -244,7 +226,6 @@
                                         </button>
                                     </div>
                                 )}
-
                                 {currentStep === 'scenario' && (
                                     <div className="space-y-6">
                                         <div className="bg-yellow-50 p-6 rounded-lg">
@@ -260,14 +241,12 @@
                                             {showAnswer ? <EyeOff size={20} /> : <Eye size={20} />}
                                             {showAnswer ? 'Hide' : 'Show'} Model Answer
                                         </button>
-
                                         {showAnswer && (
                                             <div className="bg-green-50 p-6 rounded-lg">
                                                 <h4 className="text-lg font-semibold text-green-900 mb-3">Model Answer</h4>
                                                 <p className="text-green-800">{currentLesson.scriptedAnswer}</p>
                                             </div>
                                         )}
-
                                         {showAnswer && (
                                             <button
                                                 onClick={nextStep}
@@ -278,7 +257,6 @@
                                         )}
                                     </div>
                                 )}
-
                                 {currentStep === 'check' && (
                                     <div className="space-y-6">
                                         <div className="bg-purple-50 p-6 rounded-lg">
@@ -292,7 +270,6 @@
                                                 placeholder="Enter your answer here..."
                                             />
                                         </div>
-
                                         {!showFeedback ? (
                                             <button
                                                 onClick={submitAnswer}
@@ -310,7 +287,6 @@
                                         )}
                                     </div>
                                 )}
-
                                 {currentStep === 'quiz' && (
                                     <div className="space-y-6">
                                         <div className="bg-orange-50 p-6 rounded-lg">
@@ -322,12 +298,10 @@
                                                 placeholder="Enter your answer here..."
                                             />
                                         </div>
-
                                         <div className="bg-orange-100 p-4 rounded-lg">
                                             <h4 className="font-semibold text-orange-900 mb-2">Model Answer:</h4>
                                             <p className="text-orange-800">{currentLesson.extraQuizAnswer}</p>
                                         </div>
-
                                         <button
                                             onClick={nextStep}
                                             className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
@@ -336,7 +310,6 @@
                                         </button>
                                     </div>
                                 )}
-
                                 {currentStep === 'complete' && (
                                     <div className="text-center space-y-6">
                                         <CheckCircle size={80} className="mx-auto text-green-500" />
@@ -363,7 +336,6 @@
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Training Modules</h2>
                             <p className="text-gray-600">Welcome back, {user.name}! Continue your training journey.</p>
                         </div>
-
                         <div className="grid gap-6">
                             {Object.entries(groupedLessons).map(([module, moduleLessons]) => (
                                 <div key={module} className="bg-white rounded-xl shadow-lg p-6">
@@ -405,9 +377,9 @@
 
         // ADMIN MODULE
         const AdminModule = ({ lessons, onUpdateLessons, user }) => {
-            const [view, setView] = useState('dashboard');
-            const [editingLesson, setEditingLesson] = useState(null);
-            const [formData, setFormData] = useState({
+            const [view, setView] = React.useState('dashboard'); // dashboard, lessons, add-lesson
+            const [editingLesson, setEditingLesson] = React.useState(null);
+            const [formData, setFormData] = React.useState({
                 module: '',
                 lessonNumber: 1,
                 title: '',
@@ -441,14 +413,12 @@
                     id: editingLesson ? editingLesson.id : Date.now(),
                     ...formData
                 };
-
                 let updatedLessons;
                 if (editingLesson) {
                     updatedLessons = lessons.map(l => l.id === editingLesson.id ? newLesson : l);
                 } else {
                     updatedLessons = [...lessons, newLesson];
                 }
-
                 onUpdateLessons(updatedLessons);
                 resetForm();
                 setView('lessons');
@@ -494,7 +464,6 @@
                                         ← Back to Lessons
                                     </button>
                                 </div>
-
                                 <div className="grid gap-6">
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <input
@@ -512,7 +481,6 @@
                                             className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
-
                                     <input
                                         type="text"
                                         placeholder="Lesson Title"
@@ -520,7 +488,6 @@
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-
                                     <textarea
                                         placeholder="Learning Concept"
                                         value={formData.concept}
@@ -528,7 +495,6 @@
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         rows="3"
                                     />
-
                                     <textarea
                                         placeholder="Training Scenario"
                                         value={formData.scenario}
@@ -536,7 +502,6 @@
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         rows="3"
                                     />
-
                                     <textarea
                                         placeholder="Scripted Answer"
                                         value={formData.scriptedAnswer}
@@ -544,7 +509,6 @@
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         rows="3"
                                     />
-
                                     <input
                                         type="text"
                                         placeholder="Check Question"
@@ -552,7 +516,6 @@
                                         onChange={(e) => setFormData({...formData, checkQuestion: e.target.value})}
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-
                                     <textarea
                                         placeholder="Exam Answer"
                                         value={formData.examAnswer}
@@ -560,7 +523,6 @@
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         rows="2"
                                     />
-
                                     <input
                                         type="text"
                                         placeholder="Extra Quiz Question"
@@ -568,7 +530,6 @@
                                         onChange={(e) => setFormData({...formData, extraQuizQuestion: e.target.value})}
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-
                                     <textarea
                                         placeholder="Extra Quiz Answer"
                                         value={formData.extraQuizAnswer}
@@ -576,7 +537,6 @@
                                         className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         rows="2"
                                     />
-
                                     <div className="flex gap-4">
                                         <button
                                             onClick={handleSave}
@@ -621,7 +581,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div className="space-y-4">
                                 {lessons.map(lesson => (
                                     <div key={lesson.id} className="bg-white rounded-lg shadow p-6">
@@ -643,3 +602,153 @@
                                                 >
                                                     <Edit size={18} />
                                                 </button>
+                                                <button
+                                                    onClick={() => handleDelete(lesson.id)}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-4">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Dashboard</h2>
+                            <p className="text-gray-600">Welcome, {user.name}! Manage your training content and track progress.</p>
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-6 mb-8">
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="flex items-center gap-4">
+                                    <BookOpen size={40} className="text-blue-600" />
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900">{lessons.length}</h3>
+                                        <p className="text-gray-600">Total Lessons</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="flex items-center gap-4">
+                                    <User size={40} className="text-green-600" />
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900">0</h3>
+                                        <p className="text-gray-600">Active Staff</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="flex items-center gap-4">
+                                    <Award size={40} className="text-yellow-600" />
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900">0</h3>
+                                        <p className="text-gray-600">Completions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <button
+                                onClick={() => setView('lessons')}
+                                className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all"
+                            >
+                                <BookOpen size={48} className="text-blue-600 mb-4" />
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Manage Lessons</h3>
+                                <p className="text-gray-600">Add, edit, or delete training lessons and content.</p>
+                            </button>
+                            <button className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all">
+                                <User size={48} className="text-green-600 mb-4" />
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Staff Progress</h3>
+                                <p className="text-gray-600">View individual staff progress and completion rates.</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // MAIN APP COMPONENT
+        const HiltonTrainingApp = () => {
+            const [user, setUser] = React.useState(null);
+            const [lessons, setLessons] = React.useState(SAMPLE_LESSONS);
+            const [completedLessons, setCompletedLessons] = React.useState([]);
+
+            const handleLogin = (userData) => {
+                setUser(userData);
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+                setCompletedLessons([]);
+            };
+
+            const handleCompleteLesson = (lessonId) => {
+                if (!completedLessons.includes(lessonId)) {
+                    setCompletedLessons([...completedLessons, lessonId]);
+                }
+            };
+
+            const handleUpdateLessons = (updatedLessons) => {
+                setLessons(updatedLessons);
+            };
+
+            // Navigation Component
+            const Navigation = () => (
+                <div className="bg-white shadow-sm border-b">
+                    <div className="max-w-6xl mx-auto px-4 py-3">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-xl font-bold text-gray-900">Hilton Restaurant Training</h1>
+                                <span className="text-gray-500">|</span>
+                                <span className="text-gray-600">{user?.name} ({user?.role || user?.type})</span>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (!user) {
+                return <AuthModule onLogin={handleLogin} />;
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <Navigation />
+                    
+                    {user.type === 'admin' ? (
+                        <AdminModule 
+                            lessons={lessons} 
+                            onUpdateLessons={handleUpdateLessons}
+                            user={user}
+                        />
+                    ) : (
+                        <StaffTrainingModule 
+                            lessons={lessons}
+                            user={user}
+                            onCompleteLesson={handleCompleteLesson}
+                            completedLessons={completedLessons}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HiltonTrainingApp />);
+    </script>
+</body>
+</html>
