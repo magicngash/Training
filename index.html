@@ -7,25 +7,34 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .icon { display: inline-block; width: 1.2em; height: 1.2em; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        // Extract Lucide icons for use in the app
-        const { 
-            ChevronRight, CheckCircle, User, Settings, BookOpen, Award, Home, Plus, 
-            Edit, Trash2, Eye, EyeOff 
-        } = lucide;
+        const { useState, useEffect } = React;
+        
+        // Icon components using Font Awesome
+        const Icons = {
+            ChevronRight: () => <i className="fas fa-chevron-right icon"></i>,
+            CheckCircle: () => <i className="fas fa-check-circle icon"></i>,
+            User: () => <i className="fas fa-user icon"></i>,
+            BookOpen: () => <i className="fas fa-book-open icon"></i>,
+            Award: () => <i className="fas fa-award icon"></i>,
+            Plus: () => <i className="fas fa-plus icon"></i>,
+            Edit: () => <i className="fas fa-edit icon"></i>,
+            Trash2: () => <i className="fas fa-trash icon"></i>,
+            Eye: () => <i className="fas fa-eye icon"></i>,
+            EyeOff: () => <i className="fas fa-eye-slash icon"></i>
+        };
 
-        // LESSON DATA MODULE - Sample data structure
+        // Sample lessons data
         const SAMPLE_LESSONS = [
             {
                 id: 1,
@@ -68,12 +77,12 @@
             }
         ];
 
-        // AUTH MODULE - Simple authentication
+        // Auth Module
         const AuthModule = ({ onLogin }) => {
-            const [loginType, setLoginType] = React.useState('staff');
-            const [name, setName] = React.useState('');
-            const [role, setRole] = React.useState('Server');
-            const [adminCode, setAdminCode] = React.useState('');
+            const [loginType, setLoginType] = useState('staff');
+            const [name, setName] = useState('');
+            const [role, setRole] = useState('Server');
+            const [adminCode, setAdminCode] = useState('');
 
             const handleLogin = () => {
                 if (loginType === 'staff' && name.trim()) {
@@ -152,18 +161,16 @@
             );
         };
 
-        // STAFF TRAINING MODULE
+        // Staff Training Module
         const StaffTrainingModule = ({ lessons, user, onCompleteLesson, completedLessons }) => {
-            const [currentLesson, setCurrentLesson] = React.useState(null);
-            const [showAnswer, setShowAnswer] = React.useState(false);
-            const [userAnswer, setUserAnswer] = React.useState('');
-            const [showFeedback, setShowFeedback] = React.useState(false);
-            const [currentStep, setCurrentStep] = React.useState('concept'); // concept, scenario, check, quiz, complete
+            const [currentLesson, setCurrentLesson] = useState(null);
+            const [showAnswer, setShowAnswer] = useState(false);
+            const [userAnswer, setUserAnswer] = useState('');
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [currentStep, setCurrentStep] = useState('concept');
 
             const groupedLessons = lessons.reduce((acc, lesson) => {
-                if (!acc[lesson.module]) {
-                    acc[lesson.module] = [];
-                }
+                if (!acc[lesson.module]) acc[lesson.module] = [];
                 acc[lesson.module].push(lesson);
                 return acc;
             }, {});
@@ -186,10 +193,7 @@
 
             const submitAnswer = () => {
                 setShowFeedback(true);
-                // Simple feedback logic - in real app, this would be more sophisticated
-                setTimeout(() => {
-                    nextStep();
-                }, 2000);
+                setTimeout(() => nextStep(), 2000);
             };
 
             const completeLesson = () => {
@@ -212,6 +216,7 @@
                                         ← Back to Modules
                                     </button>
                                 </div>
+                                
                                 {currentStep === 'concept' && (
                                     <div className="space-y-6">
                                         <div className="bg-blue-50 p-6 rounded-lg">
@@ -222,10 +227,11 @@
                                             onClick={nextStep}
                                             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
                                         >
-                                            Continue to Scenario <ChevronRight size={20} />
+                                            Continue to Scenario <Icons.ChevronRight />
                                         </button>
                                     </div>
                                 )}
+                                
                                 {currentStep === 'scenario' && (
                                     <div className="space-y-6">
                                         <div className="bg-yellow-50 p-6 rounded-lg">
@@ -238,25 +244,28 @@
                                             onClick={() => setShowAnswer(!showAnswer)}
                                             className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
                                         >
-                                            {showAnswer ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            {showAnswer ? <Icons.EyeOff /> : <Icons.Eye />}
                                             {showAnswer ? 'Hide' : 'Show'} Model Answer
                                         </button>
+                                        
                                         {showAnswer && (
                                             <div className="bg-green-50 p-6 rounded-lg">
                                                 <h4 className="text-lg font-semibold text-green-900 mb-3">Model Answer</h4>
                                                 <p className="text-green-800">{currentLesson.scriptedAnswer}</p>
                                             </div>
                                         )}
+                                        
                                         {showAnswer && (
                                             <button
                                                 onClick={nextStep}
                                                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
                                             >
-                                                Continue to Check Question <ChevronRight size={20} />
+                                                Continue to Check Question <Icons.ChevronRight />
                                             </button>
                                         )}
                                     </div>
                                 )}
+                                
                                 {currentStep === 'check' && (
                                     <div className="space-y-6">
                                         <div className="bg-purple-50 p-6 rounded-lg">
@@ -270,6 +279,7 @@
                                                 placeholder="Enter your answer here..."
                                             />
                                         </div>
+                                        
                                         {!showFeedback ? (
                                             <button
                                                 onClick={submitAnswer}
@@ -287,6 +297,7 @@
                                         )}
                                     </div>
                                 )}
+                                
                                 {currentStep === 'quiz' && (
                                     <div className="space-y-6">
                                         <div className="bg-orange-50 p-6 rounded-lg">
@@ -306,13 +317,14 @@
                                             onClick={nextStep}
                                             className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
                                         >
-                                            Complete Lesson <CheckCircle size={20} />
+                                            Complete Lesson <Icons.CheckCircle />
                                         </button>
                                     </div>
                                 )}
+                                
                                 {currentStep === 'complete' && (
                                     <div className="text-center space-y-6">
-                                        <CheckCircle size={80} className="mx-auto text-green-500" />
+                                        <Icons.CheckCircle className="mx-auto text-green-500" style={{fontSize: '80px'}} />
                                         <h3 className="text-2xl font-bold text-green-700">Lesson Complete!</h3>
                                         <p className="text-gray-600">You've successfully completed "{currentLesson.title}"</p>
                                         <button
@@ -359,8 +371,8 @@
                                                             <p className="text-sm text-gray-600 mt-1">{lesson.concept.substring(0, 100)}...</p>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            {isCompleted && <CheckCircle size={24} className="text-green-500" />}
-                                                            <ChevronRight size={20} className="text-gray-400" />
+                                                            {isCompleted && <Icons.CheckCircle className="text-green-500" />}
+                                                            <Icons.ChevronRight className="text-gray-400" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -375,50 +387,30 @@
             );
         };
 
-        // ADMIN MODULE
+        // Admin Module
         const AdminModule = ({ lessons, onUpdateLessons, user }) => {
-            const [view, setView] = React.useState('dashboard'); // dashboard, lessons, add-lesson
-            const [editingLesson, setEditingLesson] = React.useState(null);
-            const [formData, setFormData] = React.useState({
-                module: '',
-                lessonNumber: 1,
-                title: '',
-                concept: '',
-                scenario: '',
-                scriptedAnswer: '',
-                checkQuestion: '',
-                examAnswer: '',
-                extraQuizQuestion: '',
-                extraQuizAnswer: ''
+            const [view, setView] = useState('dashboard');
+            const [editingLesson, setEditingLesson] = useState(null);
+            const [formData, setFormData] = useState({
+                module: '', lessonNumber: 1, title: '', concept: '', scenario: '',
+                scriptedAnswer: '', checkQuestion: '', examAnswer: '',
+                extraQuizQuestion: '', extraQuizAnswer: ''
             });
 
             const resetForm = () => {
                 setFormData({
-                    module: '',
-                    lessonNumber: 1,
-                    title: '',
-                    concept: '',
-                    scenario: '',
-                    scriptedAnswer: '',
-                    checkQuestion: '',
-                    examAnswer: '',
-                    extraQuizQuestion: '',
-                    extraQuizAnswer: ''
+                    module: '', lessonNumber: 1, title: '', concept: '', scenario: '',
+                    scriptedAnswer: '', checkQuestion: '', examAnswer: '',
+                    extraQuizQuestion: '', extraQuizAnswer: ''
                 });
                 setEditingLesson(null);
             };
 
             const handleSave = () => {
-                const newLesson = {
-                    id: editingLesson ? editingLesson.id : Date.now(),
-                    ...formData
-                };
-                let updatedLessons;
-                if (editingLesson) {
-                    updatedLessons = lessons.map(l => l.id === editingLesson.id ? newLesson : l);
-                } else {
-                    updatedLessons = [...lessons, newLesson];
-                }
+                const newLesson = { id: editingLesson ? editingLesson.id : Date.now(), ...formData };
+                const updatedLessons = editingLesson 
+                    ? lessons.map(l => l.id === editingLesson.id ? newLesson : l)
+                    : [...lessons, newLesson];
                 onUpdateLessons(updatedLessons);
                 resetForm();
                 setView('lessons');
@@ -426,25 +418,13 @@
 
             const handleDelete = (lessonId) => {
                 if (confirm('Are you sure you want to delete this lesson?')) {
-                    const updatedLessons = lessons.filter(l => l.id !== lessonId);
-                    onUpdateLessons(updatedLessons);
+                    onUpdateLessons(lessons.filter(l => l.id !== lessonId));
                 }
             };
 
             const handleEdit = (lesson) => {
                 setEditingLesson(lesson);
-                setFormData({
-                    module: lesson.module,
-                    lessonNumber: lesson.lessonNumber,
-                    title: lesson.title,
-                    concept: lesson.concept,
-                    scenario: lesson.scenario,
-                    scriptedAnswer: lesson.scriptedAnswer,
-                    checkQuestion: lesson.checkQuestion,
-                    examAnswer: lesson.examAnswer,
-                    extraQuizQuestion: lesson.extraQuizQuestion,
-                    extraQuizAnswer: lesson.extraQuizAnswer
-                });
+                setFormData({...lesson});
                 setView('add-lesson');
             };
 
@@ -457,97 +437,48 @@
                                     <h2 className="text-2xl font-bold text-gray-900">
                                         {editingLesson ? 'Edit Lesson' : 'Add New Lesson'}
                                     </h2>
-                                    <button
-                                        onClick={() => setView('lessons')}
-                                        className="text-gray-500 hover:text-gray-700"
-                                    >
+                                    <button onClick={() => setView('lessons')} className="text-gray-500 hover:text-gray-700">
                                         ← Back to Lessons
                                     </button>
                                 </div>
                                 <div className="grid gap-6">
                                     <div className="grid md:grid-cols-2 gap-4">
-                                        <input
-                                            type="text"
-                                            placeholder="Module (e.g., Greeting, Hygiene)"
-                                            value={formData.module}
+                                        <input type="text" placeholder="Module" value={formData.module}
                                             onChange={(e) => setFormData({...formData, module: e.target.value})}
-                                            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                        <input
-                                            type="number"
-                                            placeholder="Lesson Number"
-                                            value={formData.lessonNumber}
+                                            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                                        <input type="number" placeholder="Lesson Number" value={formData.lessonNumber}
                                             onChange={(e) => setFormData({...formData, lessonNumber: parseInt(e.target.value)})}
-                                            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
+                                            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
                                     </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Lesson Title"
-                                        value={formData.title}
+                                    <input type="text" placeholder="Lesson Title" value={formData.title}
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                    <textarea
-                                        placeholder="Learning Concept"
-                                        value={formData.concept}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                                    <textarea placeholder="Learning Concept" value={formData.concept}
                                         onChange={(e) => setFormData({...formData, concept: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        rows="3"
-                                    />
-                                    <textarea
-                                        placeholder="Training Scenario"
-                                        value={formData.scenario}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="3" />
+                                    <textarea placeholder="Training Scenario" value={formData.scenario}
                                         onChange={(e) => setFormData({...formData, scenario: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        rows="3"
-                                    />
-                                    <textarea
-                                        placeholder="Scripted Answer"
-                                        value={formData.scriptedAnswer}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="3" />
+                                    <textarea placeholder="Scripted Answer" value={formData.scriptedAnswer}
                                         onChange={(e) => setFormData({...formData, scriptedAnswer: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        rows="3"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Check Question"
-                                        value={formData.checkQuestion}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="3" />
+                                    <input type="text" placeholder="Check Question" value={formData.checkQuestion}
                                         onChange={(e) => setFormData({...formData, checkQuestion: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                    <textarea
-                                        placeholder="Exam Answer"
-                                        value={formData.examAnswer}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                                    <textarea placeholder="Exam Answer" value={formData.examAnswer}
                                         onChange={(e) => setFormData({...formData, examAnswer: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        rows="2"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Extra Quiz Question"
-                                        value={formData.extraQuizQuestion}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="2" />
+                                    <input type="text" placeholder="Extra Quiz Question" value={formData.extraQuizQuestion}
                                         onChange={(e) => setFormData({...formData, extraQuizQuestion: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                    <textarea
-                                        placeholder="Extra Quiz Answer"
-                                        value={formData.extraQuizAnswer}
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                                    <textarea placeholder="Extra Quiz Answer" value={formData.extraQuizAnswer}
                                         onChange={(e) => setFormData({...formData, extraQuizAnswer: e.target.value})}
-                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        rows="2"
-                                    />
+                                        className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="2" />
                                     <div className="flex gap-4">
-                                        <button
-                                            onClick={handleSave}
-                                            className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg"
-                                        >
+                                        <button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg">
                                             {editingLesson ? 'Update Lesson' : 'Save Lesson'}
                                         </button>
-                                        <button
-                                            onClick={resetForm}
-                                            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg"
-                                        >
+                                        <button onClick={resetForm} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg">
                                             Cancel
                                         </button>
                                     </div>
@@ -566,16 +497,12 @@
                                 <div className="flex justify-between items-center">
                                     <h2 className="text-2xl font-bold text-gray-900">Manage Lessons</h2>
                                     <div className="flex gap-4">
-                                        <button
-                                            onClick={() => setView('add-lesson')}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center gap-2"
-                                        >
-                                            <Plus size={20} /> Add Lesson
+                                        <button onClick={() => setView('add-lesson')} 
+                                            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center gap-2">
+                                            <Icons.Plus /> Add Lesson
                                         </button>
-                                        <button
-                                            onClick={() => setView('dashboard')}
-                                            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg"
-                                        >
+                                        <button onClick={() => setView('dashboard')} 
+                                            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg">
                                             Dashboard
                                         </button>
                                     </div>
@@ -596,17 +523,13 @@
                                                 <p className="text-gray-600 mb-4">{lesson.concept.substring(0, 150)}...</p>
                                             </div>
                                             <div className="flex gap-2 ml-4">
-                                                <button
-                                                    onClick={() => handleEdit(lesson)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                                >
-                                                    <Edit size={18} />
+                                                <button onClick={() => handleEdit(lesson)} 
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                    <Icons.Edit />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDelete(lesson.id)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                                                >
-                                                    <Trash2 size={18} />
+                                                <button onClick={() => handleDelete(lesson.id)} 
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                                                    <Icons.Trash2 />
                                                 </button>
                                             </div>
                                         </div>
@@ -628,7 +551,7 @@
                         <div className="grid md:grid-cols-3 gap-6 mb-8">
                             <div className="bg-white rounded-xl shadow-lg p-6">
                                 <div className="flex items-center gap-4">
-                                    <BookOpen size={40} className="text-blue-600" />
+                                    <Icons.BookOpen className="text-blue-600" style={{fontSize: '40px'}} />
                                     <div>
                                         <h3 className="text-2xl font-bold text-gray-900">{lessons.length}</h3>
                                         <p className="text-gray-600">Total Lessons</p>
@@ -637,7 +560,7 @@
                             </div>
                             <div className="bg-white rounded-xl shadow-lg p-6">
                                 <div className="flex items-center gap-4">
-                                    <User size={40} className="text-green-600" />
+                                    <Icons.User className="text-green-600" style={{fontSize: '40px'}} />
                                     <div>
                                         <h3 className="text-2xl font-bold text-gray-900">0</h3>
                                         <p className="text-gray-600">Active Staff</p>
@@ -646,7 +569,7 @@
                             </div>
                             <div className="bg-white rounded-xl shadow-lg p-6">
                                 <div className="flex items-center gap-4">
-                                    <Award size={40} className="text-yellow-600" />
+                                    <Icons.Award className="text-yellow-600" style={{fontSize: '40px'}} />
                                     <div>
                                         <h3 className="text-2xl font-bold text-gray-900">0</h3>
                                         <p className="text-gray-600">Completions</p>
@@ -655,16 +578,14 @@
                             </div>
                         </div>
                         <div className="grid md:grid-cols-2 gap-6">
-                            <button
-                                onClick={() => setView('lessons')}
-                                className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all"
-                            >
-                                <BookOpen size={48} className="text-blue-600 mb-4" />
+                            <button onClick={() => setView('lessons')} 
+                                className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all">
+                                <Icons.BookOpen className="text-blue-600 mb-4" style={{fontSize: '48px'}} />
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">Manage Lessons</h3>
                                 <p className="text-gray-600">Add, edit, or delete training lessons and content.</p>
                             </button>
                             <button className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all">
-                                <User size={48} className="text-green-600 mb-4" />
+                                <Icons.User className="text-green-600 mb-4" style={{fontSize: '48px'}} />
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">Staff Progress</h3>
                                 <p className="text-gray-600">View individual staff progress and completion rates.</p>
                             </button>
@@ -674,32 +595,24 @@
             );
         };
 
-        // MAIN APP COMPONENT
+        // Main App Component
         const HiltonTrainingApp = () => {
-            const [user, setUser] = React.useState(null);
-            const [lessons, setLessons] = React.useState(SAMPLE_LESSONS);
-            const [completedLessons, setCompletedLessons] = React.useState([]);
+            const [user, setUser] = useState(null);
+            const [lessons, setLessons] = useState(SAMPLE_LESSONS);
+            const [completedLessons, setCompletedLessons] = useState([]);
 
-            const handleLogin = (userData) => {
-                setUser(userData);
-            };
-
+            const handleLogin = (userData) => setUser(userData);
             const handleLogout = () => {
                 setUser(null);
                 setCompletedLessons([]);
             };
-
             const handleCompleteLesson = (lessonId) => {
                 if (!completedLessons.includes(lessonId)) {
                     setCompletedLessons([...completedLessons, lessonId]);
                 }
             };
+            const handleUpdateLessons = (updatedLessons) => setLessons(updatedLessons);
 
-            const handleUpdateLessons = (updatedLessons) => {
-                setLessons(updatedLessons);
-            };
-
-            // Navigation Component
             const Navigation = () => (
                 <div className="bg-white shadow-sm border-b">
                     <div className="max-w-6xl mx-auto px-4 py-3">
@@ -709,10 +622,7 @@
                                 <span className="text-gray-500">|</span>
                                 <span className="text-gray-600">{user?.name} ({user?.role || user?.type})</span>
                             </div>
-                            <button
-                                onClick={handleLogout}
-                                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100"
-                            >
+                            <button onClick={handleLogout} className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100">
                                 Logout
                             </button>
                         </div>
@@ -720,26 +630,19 @@
                 </div>
             );
 
-            if (!user) {
-                return <AuthModule onLogin={handleLogin} />;
-            }
+            if (!user) return <AuthModule onLogin={handleLogin} />;
 
             return (
                 <div className="min-h-screen bg-gray-50">
                     <Navigation />
-                    
                     {user.type === 'admin' ? (
-                        <AdminModule 
-                            lessons={lessons} 
-                            onUpdateLessons={handleUpdateLessons}
-                            user={user}
-                        />
+                        <AdminModule lessons={lessons} onUpdateLessons={handleUpdateLessons} user={user} />
                     ) : (
                         <StaffTrainingModule 
-                            lessons={lessons}
-                            user={user}
-                            onCompleteLesson={handleCompleteLesson}
-                            completedLessons={completedLessons}
+                            lessons={lessons} 
+                            user={user} 
+                            onCompleteLesson={handleCompleteLesson} 
+                            completedLessons={completedLessons} 
                         />
                     )}
                 </div>
@@ -747,8 +650,7 @@
         };
 
         // Render the app
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<HiltonTrainingApp />);
+        ReactDOM.render(<HiltonTrainingApp />, document.getElementById('root'));
     </script>
 </body>
 </html>
