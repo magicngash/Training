@@ -1,0 +1,757 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, CheckCircle, User, Settings, BookOpen, Award, Home, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+
+// LESSON DATA MODULE - Sample data structure
+const SAMPLE_LESSONS = [
+  {
+    id: 1,
+    module: "Greeting",
+    lessonNumber: 1,
+    title: "Welcome Guest Greeting",
+    concept: "First impressions matter. A warm, professional greeting sets the tone for the entire dining experience.",
+    scenario: "A family of four walks into the restaurant during dinner rush. They look around uncertainly, waiting to be seated.",
+    scriptedAnswer: "Good evening! Welcome to Hilton Restaurant. My name is [Your Name], and I'll be taking care of you tonight. How many will be dining with us this evening?",
+    checkQuestion: "What are the key elements you should include when greeting guests?",
+    examAnswer: "Warm greeting, introduce yourself, ask about party size, make eye contact, smile",
+    extraQuizQuestion: "What should you do if guests have to wait for a table?",
+    extraQuizAnswer: "Acknowledge the wait time, offer to take drink orders, provide estimated wait time, keep them informed"
+  },
+  {
+    id: 2,
+    module: "Greeting",
+    lessonNumber: 2,
+    title: "VIP Guest Recognition",
+    concept: "Recognizing and appropriately greeting VIP guests enhances their experience and builds loyalty.",
+    scenario: "A guest approaches who you recognize as a Hilton Honors Diamond member who dines here frequently.",
+    scriptedAnswer: "Good evening, Mr. Johnson! It's wonderful to see you again. Your usual table by the window is ready, and I believe you prefer still water with lemon?",
+    checkQuestion: "How do you appropriately acknowledge a returning VIP guest?",
+    examAnswer: "Use their name, acknowledge their return, remember preferences, offer personalized service",
+    extraQuizQuestion: "What if you're not sure about a guest's preferences?",
+    extraQuizAnswer: "Ask politely about their preferences rather than assume, show you care about getting it right"
+  },
+  {
+    id: 3,
+    module: "Hygiene",
+    lessonNumber: 1,
+    title: "Hand Washing Standards",
+    concept: "Proper hand hygiene is critical for food safety and guest health protection.",
+    scenario: "You've just cleared a table and need to take an order at another table immediately.",
+    scriptedAnswer: "Excuse me for just one moment while I wash my hands, then I'll be right with you to take your order.",
+    checkQuestion: "When must you wash your hands during service?",
+    examAnswer: "After clearing tables, before handling food, after touching face/hair, every 30 minutes minimum, when changing tasks",
+    extraQuizQuestion: "How long should proper handwashing take?",
+    extraQuizAnswer: "20 seconds minimum with soap and warm water, including under nails and between fingers"
+  }
+];
+
+// AUTH MODULE - Simple authentication
+const AuthModule = ({ onLogin }) => {
+  const [loginType, setLoginType] = useState('staff');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('Server');
+  const [adminCode, setAdminCode] = useState('');
+
+  const handleLogin = () => {
+    if (loginType === 'staff' && name.trim()) {
+      onLogin({ type: 'staff', name: name.trim(), role });
+    } else if (loginType === 'admin' && adminCode === 'admin123') {
+      onLogin({ type: 'admin', name: 'Administrator' });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Hilton Restaurant</h1>
+          <h2 className="text-xl text-gray-600">Training Portal</h2>
+        </div>
+
+        <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setLoginType('staff')}
+            className={`flex-1 py-2 px-4 rounded-md transition-all ${
+              loginType === 'staff' 
+                ? 'bg-white shadow-sm text-blue-600' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Staff Login
+          </button>
+          <button
+            onClick={() => setLoginType('admin')}
+            className={`flex-1 py-2 px-4 rounded-md transition-all ${
+              loginType === 'admin' 
+                ? 'bg-white shadow-sm text-blue-600' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Admin Login
+          </button>
+        </div>
+
+        {loginType === 'staff' ? (
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="Server">Server</option>
+              <option value="Host">Host</option>
+              <option value="Bartender">Bartender</option>
+              <option value="Manager">Manager</option>
+            </select>
+          </div>
+        ) : (
+          <input
+            type="password"
+            placeholder="Enter admin code"
+            value={adminCode}
+            onChange={(e) => setAdminCode(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        )}
+
+        <button
+          onClick={handleLogin}
+          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
+        >
+          Login
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// STAFF TRAINING MODULE
+const StaffTrainingModule = ({ lessons, user, onCompleteLesson, completedLessons }) => {
+  const [currentLesson, setCurrentLesson] = useState(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [currentStep, setCurrentStep] = useState('concept'); // concept, scenario, check, quiz, complete
+
+  const groupedLessons = lessons.reduce((acc, lesson) => {
+    if (!acc[lesson.module]) {
+      acc[lesson.module] = [];
+    }
+    acc[lesson.module].push(lesson);
+    return acc;
+  }, {});
+
+  const startLesson = (lesson) => {
+    setCurrentLesson(lesson);
+    setCurrentStep('concept');
+    setShowAnswer(false);
+    setUserAnswer('');
+    setShowFeedback(false);
+  };
+
+  const nextStep = () => {
+    const steps = ['concept', 'scenario', 'check', 'quiz', 'complete'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex < steps.length - 1) {
+      setCurrentStep(steps[currentIndex + 1]);
+    }
+  };
+
+  const submitAnswer = () => {
+    setShowFeedback(true);
+    // Simple feedback logic - in real app, this would be more sophisticated
+    setTimeout(() => {
+      nextStep();
+    }, 2000);
+  };
+
+  const completeLesson = () => {
+    onCompleteLesson(currentLesson.id);
+    setCurrentLesson(null);
+    setCurrentStep('concept');
+  };
+
+  if (currentLesson) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">{currentLesson.title}</h2>
+              <button
+                onClick={() => setCurrentLesson(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ← Back to Modules
+              </button>
+            </div>
+
+            {currentStep === 'concept' && (
+              <div className="space-y-6">
+                <div className="bg-blue-50 p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-3">Learning Concept</h3>
+                  <p className="text-blue-800">{currentLesson.concept}</p>
+                </div>
+                <button
+                  onClick={nextStep}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
+                >
+                  Continue to Scenario <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+
+            {currentStep === 'scenario' && (
+              <div className="space-y-6">
+                <div className="bg-yellow-50 p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-yellow-900 mb-3">Training Scenario</h3>
+                  <p className="text-yellow-800 mb-4">{currentLesson.scenario}</p>
+                  <p className="text-yellow-700 font-medium">What would you say or do in this situation?</p>
+                </div>
+                
+                <button
+                  onClick={() => setShowAnswer(!showAnswer)}
+                  className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
+                >
+                  {showAnswer ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showAnswer ? 'Hide' : 'Show'} Model Answer
+                </button>
+
+                {showAnswer && (
+                  <div className="bg-green-50 p-6 rounded-lg">
+                    <h4 className="text-lg font-semibold text-green-900 mb-3">Model Answer</h4>
+                    <p className="text-green-800">{currentLesson.scriptedAnswer}</p>
+                  </div>
+                )}
+
+                {showAnswer && (
+                  <button
+                    onClick={nextStep}
+                    className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
+                  >
+                    Continue to Check Question <ChevronRight size={20} />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {currentStep === 'check' && (
+              <div className="space-y-6">
+                <div className="bg-purple-50 p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-purple-900 mb-3">Check Your Understanding</h3>
+                  <p className="text-purple-800 mb-4">{currentLesson.checkQuestion}</p>
+                  <textarea
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    rows="4"
+                    placeholder="Enter your answer here..."
+                  />
+                </div>
+
+                {!showFeedback ? (
+                  <button
+                    onClick={submitAnswer}
+                    disabled={!userAnswer.trim()}
+                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-2 px-6 rounded-lg"
+                  >
+                    Submit Answer
+                  </button>
+                ) : (
+                  <div className="bg-green-50 p-6 rounded-lg">
+                    <h4 className="text-lg font-semibold text-green-900 mb-3">Model Answer</h4>
+                    <p className="text-green-800">{currentLesson.examAnswer}</p>
+                    <p className="text-green-700 mt-3 font-medium">Great job! Moving to quiz question...</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentStep === 'quiz' && (
+              <div className="space-y-6">
+                <div className="bg-orange-50 p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-orange-900 mb-3">Bonus Quiz Question</h3>
+                  <p className="text-orange-800 mb-4">{currentLesson.extraQuizQuestion}</p>
+                  <textarea
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    rows="3"
+                    placeholder="Enter your answer here..."
+                  />
+                </div>
+
+                <div className="bg-orange-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-orange-900 mb-2">Model Answer:</h4>
+                  <p className="text-orange-800">{currentLesson.extraQuizAnswer}</p>
+                </div>
+
+                <button
+                  onClick={nextStep}
+                  className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-6 rounded-lg flex items-center gap-2"
+                >
+                  Complete Lesson <CheckCircle size={20} />
+                </button>
+              </div>
+            )}
+
+            {currentStep === 'complete' && (
+              <div className="text-center space-y-6">
+                <CheckCircle size={80} className="mx-auto text-green-500" />
+                <h3 className="text-2xl font-bold text-green-700">Lesson Complete!</h3>
+                <p className="text-gray-600">You've successfully completed "{currentLesson.title}"</p>
+                <button
+                  onClick={completeLesson}
+                  className="bg-green-600 hover:bg-green-700 text-white py-3 px-8 rounded-lg"
+                >
+                  Return to Modules
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Training Modules</h2>
+          <p className="text-gray-600">Welcome back, {user.name}! Continue your training journey.</p>
+        </div>
+
+        <div className="grid gap-6">
+          {Object.entries(groupedLessons).map(([module, moduleLessons]) => (
+            <div key={module} className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">{module}</h3>
+              <div className="grid gap-4">
+                {moduleLessons.map(lesson => {
+                  const isCompleted = completedLessons.includes(lesson.id);
+                  return (
+                    <div
+                      key={lesson.id}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        isCompleted 
+                          ? 'border-green-200 bg-green-50' 
+                          : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
+                      onClick={() => startLesson(lesson)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{lesson.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{lesson.concept.substring(0, 100)}...</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isCompleted && <CheckCircle size={24} className="text-green-500" />}
+                          <ChevronRight size={20} className="text-gray-400" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ADMIN MODULE
+const AdminModule = ({ lessons, onUpdateLessons, user }) => {
+  const [view, setView] = useState('dashboard'); // dashboard, lessons, add-lesson
+  const [editingLesson, setEditingLesson] = useState(null);
+  const [formData, setFormData] = useState({
+    module: '',
+    lessonNumber: 1,
+    title: '',
+    concept: '',
+    scenario: '',
+    scriptedAnswer: '',
+    checkQuestion: '',
+    examAnswer: '',
+    extraQuizQuestion: '',
+    extraQuizAnswer: ''
+  });
+
+  const resetForm = () => {
+    setFormData({
+      module: '',
+      lessonNumber: 1,
+      title: '',
+      concept: '',
+      scenario: '',
+      scriptedAnswer: '',
+      checkQuestion: '',
+      examAnswer: '',
+      extraQuizQuestion: '',
+      extraQuizAnswer: ''
+    });
+    setEditingLesson(null);
+  };
+
+  const handleSave = () => {
+    const newLesson = {
+      id: editingLesson ? editingLesson.id : Date.now(),
+      ...formData
+    };
+
+    let updatedLessons;
+    if (editingLesson) {
+      updatedLessons = lessons.map(l => l.id === editingLesson.id ? newLesson : l);
+    } else {
+      updatedLessons = [...lessons, newLesson];
+    }
+
+    onUpdateLessons(updatedLessons);
+    resetForm();
+    setView('lessons');
+  };
+
+  const handleDelete = (lessonId) => {
+    if (confirm('Are you sure you want to delete this lesson?')) {
+      const updatedLessons = lessons.filter(l => l.id !== lessonId);
+      onUpdateLessons(updatedLessons);
+    }
+  };
+
+  const handleEdit = (lesson) => {
+    setEditingLesson(lesson);
+    setFormData({
+      module: lesson.module,
+      lessonNumber: lesson.lessonNumber,
+      title: lesson.title,
+      concept: lesson.concept,
+      scenario: lesson.scenario,
+      scriptedAnswer: lesson.scriptedAnswer,
+      checkQuestion: lesson.checkQuestion,
+      examAnswer: lesson.examAnswer,
+      extraQuizQuestion: lesson.extraQuizQuestion,
+      extraQuizAnswer: lesson.extraQuizAnswer
+    });
+    setView('add-lesson');
+  };
+
+  if (view === 'add-lesson') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingLesson ? 'Edit Lesson' : 'Add New Lesson'}
+              </h2>
+              <button
+                onClick={() => setView('lessons')}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ← Back to Lessons
+              </button>
+            </div>
+
+            <div className="grid gap-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Module (e.g., Greeting, Hygiene)"
+                  value={formData.module}
+                  onChange={(e) => setFormData({...formData, module: e.target.value})}
+                  className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="number"
+                  placeholder="Lesson Number"
+                  value={formData.lessonNumber}
+                  onChange={(e) => setFormData({...formData, lessonNumber: parseInt(e.target.value)})}
+                  className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <input
+                type="text"
+                placeholder="Lesson Title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+
+              <textarea
+                placeholder="Learning Concept"
+                value={formData.concept}
+                onChange={(e) => setFormData({...formData, concept: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+              />
+
+              <textarea
+                placeholder="Training Scenario"
+                value={formData.scenario}
+                onChange={(e) => setFormData({...formData, scenario: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+              />
+
+              <textarea
+                placeholder="Scripted Answer"
+                value={formData.scriptedAnswer}
+                onChange={(e) => setFormData({...formData, scriptedAnswer: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+              />
+
+              <input
+                type="text"
+                placeholder="Check Question"
+                value={formData.checkQuestion}
+                onChange={(e) => setFormData({...formData, checkQuestion: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+
+              <textarea
+                placeholder="Exam Answer"
+                value={formData.examAnswer}
+                onChange={(e) => setFormData({...formData, examAnswer: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="2"
+              />
+
+              <input
+                type="text"
+                placeholder="Extra Quiz Question"
+                value={formData.extraQuizQuestion}
+                onChange={(e) => setFormData({...formData, extraQuizQuestion: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+
+              <textarea
+                placeholder="Extra Quiz Answer"
+                value={formData.extraQuizAnswer}
+                onChange={(e) => setFormData({...formData, extraQuizAnswer: e.target.value})}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="2"
+              />
+
+              <div className="flex gap-4">
+                <button
+                  onClick={handleSave}
+                  className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg"
+                >
+                  {editingLesson ? 'Update Lesson' : 'Save Lesson'}
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'lessons') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Manage Lessons</h2>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setView('add-lesson')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center gap-2"
+                >
+                  <Plus size={20} /> Add Lesson
+                </button>
+                <button
+                  onClick={() => setView('dashboard')}
+                  className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg"
+                >
+                  Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {lessons.map(lesson => (
+              <div key={lesson.id} className="bg-white rounded-lg shadow p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-2">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {lesson.module}
+                      </span>
+                      <span className="text-gray-500">Lesson {lesson.lessonNumber}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{lesson.title}</h3>
+                    <p className="text-gray-600 mb-4">{lesson.concept.substring(0, 150)}...</p>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => handleEdit(lesson)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(lesson.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Dashboard</h2>
+          <p className="text-gray-600">Welcome, {user.name}! Manage your training content and track progress.</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center gap-4">
+              <BookOpen size={40} className="text-blue-600" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">{lessons.length}</h3>
+                <p className="text-gray-600">Total Lessons</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center gap-4">
+              <User size={40} className="text-green-600" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">0</h3>
+                <p className="text-gray-600">Active Staff</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center gap-4">
+              <Award size={40} className="text-yellow-600" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">0</h3>
+                <p className="text-gray-600">Completions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <button
+            onClick={() => setView('lessons')}
+            className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all"
+          >
+            <BookOpen size={48} className="text-blue-600 mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Manage Lessons</h3>
+            <p className="text-gray-600">Add, edit, or delete training lessons and content.</p>
+          </button>
+
+          <button className="bg-white rounded-xl shadow-lg p-8 text-left hover:shadow-xl transition-all">
+            <User size={48} className="text-green-600 mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Staff Progress</h3>
+            <p className="text-gray-600">View individual staff progress and completion rates.</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// MAIN APP COMPONENT
+const HiltonTrainingApp = () => {
+  const [user, setUser] = useState(null);
+  const [lessons, setLessons] = useState(SAMPLE_LESSONS);
+  const [completedLessons, setCompletedLessons] = useState([]);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setCompletedLessons([]);
+  };
+
+  const handleCompleteLesson = (lessonId) => {
+    if (!completedLessons.includes(lessonId)) {
+      setCompletedLessons([...completedLessons, lessonId]);
+    }
+  };
+
+  const handleUpdateLessons = (updatedLessons) => {
+    setLessons(updatedLessons);
+  };
+
+  // Navigation Component
+  const Navigation = () => (
+    <div className="bg-white shadow-sm border-b">
+      <div className="max-w-6xl mx-auto px-4 py-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold text-gray-900">Hilton Restaurant Training</h1>
+            <span className="text-gray-500">|</span>
+            <span className="text-gray-600">{user?.name} ({user?.role || user?.type})</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!user) {
+    return <AuthModule onLogin={handleLogin} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
+      {user.type === 'admin' ? (
+        <AdminModule 
+          lessons={lessons} 
+          onUpdateLessons={handleUpdateLessons}
+          user={user}
+        />
+      ) : (
+        <StaffTrainingModule 
+          lessons={lessons}
+          user={user}
+          onCompleteLesson={handleCompleteLesson}
+          completedLessons={completedLessons}
+        />
+      )}
+    </div>
+  );
+};
+
+export default HiltonTrainingApp;
